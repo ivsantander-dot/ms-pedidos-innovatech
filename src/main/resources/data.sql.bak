@@ -1,0 +1,6 @@
+-- Datos de ejemplo
+INSERT INTO pedidos (cliente_id, producto, precio, estado, fecha_creacion) VALUES
+('cliente1', 'Laptop', 1500.00, 'PENDIENTE', CURRENT_TIMESTAMP),
+('cliente1', 'Mouse', 25.50, 'ENVIADO', CURRENT_TIMESTAMP),
+('cliente2', 'Teclado', 45.00, 'RECIBIDO', CURRENT_TIMESTAMP),
+('cliente3', 'Monitor', 300.00, 'CANCELADO', CURRENT_TIMESTAMP);
