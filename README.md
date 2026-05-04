@@ -2,7 +2,7 @@
 
 ## ¿Qué es esto?
 
-Un microservicio de pedidos muy simple que permite:
+Un microservicio de pedidos que permite:
 - Crear pedidos
 - Ver pedidos
 - Cambiar el estado de los pedidos
@@ -15,16 +15,6 @@ Un pedido puede tener 4 estados:
 2. **ENVIADO** - El pedido ha sido enviado al cliente
 3. **RECIBIDO** - El cliente ha recibido el pedido
 4. **CANCELADO** - El pedido fue cancelado
-
-## Cómo ejecutarlo
-
-```bash
-# Compilar
-.\mvnw.cmd clean compile
-
-# Ejecutar
-.\mvnw.cmd spring-boot:run
-```
 
 La aplicación corre en: http://localhost:8080
 
@@ -80,31 +70,6 @@ curl -X PUT http://localhost:8080/api/pedidos/1/estado?estado=ENVIADO
 ### Cancelar un pedido
 ```bash
 curl -X PUT http://localhost:8080/api/pedidos/1/cancelar
-```
-
-## Base de Datos
-
-- **Tipo**: H2 (en memoria)
-- **Consola**: http://localhost:8080/h2-console
-- **URL**: jdbc:h2:mem:pedidosdb
-- **Usuario**: sa
-- **Password**: password
-
-## Datos de Ejemplo
-
-La aplicación incluye 4 pedidos de ejemplo al iniciar:
-- cliente1: Laptop (PENDIENTE), Mouse (ENVIADO)
-- cliente2: Teclado (RECIBIDO)
-- cliente3: Monitor (CANCELADO)
-
-## Estructura del Proyecto
-
-```
-src/main/java/com/inovatech/ms_pedidos_innovatech/
-├── model/          # Entidades (Pedido, EstadoPedido)
-├── repository/     # Acceso a datos
-├── service/        # Lógica de negocio
-└── controller/     # Endpoints REST
 ```
 
 ## Tecnologías
