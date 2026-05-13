@@ -21,29 +21,29 @@ La aplicación corre en: http://localhost:8080
 ## Endpoints (URLs)
 
 ### Pedidos
-- `POST /api/pedidos` - Crear un nuevo pedido
-- `GET /api/pedidos` - Ver todos los pedidos
-- `GET /api/pedidos/{id}` - Ver un pedido específico
-- `DELETE /api/pedidos/{id}` - Eliminar un pedido
+- `POST /api/v1/pedidos` - Crear un nuevo pedido
+- `GET /api/v1/pedidos` - Ver todos los pedidos
+- `GET /api/v1/pedidos/{id}` - Ver un pedido específico
+- `DELETE /api/v1/pedidos/{id}` - Eliminar un pedido
 
 ### Por Cliente
-- `GET /api/pedidos/cliente/{clienteId}` - Ver pedidos de un cliente
+- `GET /api/v1/pedidos/cliente/{clienteId}` - Ver pedidos de un cliente
 
 ### Por Estado
-- `GET /api/pedidos/estado/PENDIENTE` - Ver pedidos pendientes
-- `GET /api/pedidos/estado/ENVIADO` - Ver pedidos enviados
-- `GET /api/pedidos/estado/RECIBIDO` - Ver pedidos recibidos
-- `GET /api/pedidos/estado/CANCELADO` - Ver pedidos cancelados
+- `GET /api/v1/pedidos/estado/PENDIENTE` - Ver pedidos pendientes
+- `GET /api/v1/pedidos/estado/ENVIADO` - Ver pedidos enviados
+- `GET /api/v1/pedidos/estado/RECIBIDO` - Ver pedidos recibidos
+- `GET /api/v1/pedidos/estado/CANCELADO` - Ver pedidos cancelados
 
 ### Cambiar Estado
-- `PUT /api/pedidos/{id}/estado?estado=ENVIADO` - Cambiar estado de un pedido
-- `PUT /api/pedidos/{id}/cancelar` - Cancelar un pedido (solo si está PENDIENTE)
+- `PUT /api/v1/pedidos/{id}/estado?estado=ENVIADO` - Cambiar estado de un pedido
+- `PUT /api/v1/pedidos/{id}/cancelar` - Cancelar un pedido (solo si está PENDIENTE)
 
 ## Ejemplos de uso
 
 ### Crear un pedido
 ```bash
-curl -X POST http://localhost:8080/api/pedidos \
+curl -X POST http://localhost:8080/api/v1/pedidos \
   -H "Content-Type: application/json" \
   -d '{
     "clienteId": "cliente123",
@@ -54,22 +54,22 @@ curl -X POST http://localhost:8080/api/pedidos \
 
 ### Ver todos los pedidos
 ```bash
-curl http://localhost:8080/api/pedidos
+curl http://localhost:8080/api/v1/pedidos
 ```
 
 ### Ver pedidos de un cliente
 ```bash
-curl http://localhost:8080/api/pedidos/cliente/cliente123
+curl http://localhost:8080/api/v1/pedidos/cliente/cliente123
 ```
 
 ### Cambiar estado a ENVIADO
 ```bash
-curl -X PUT http://localhost:8080/api/pedidos/1/estado?estado=ENVIADO
+curl -X PUT http://localhost:8080/api/v1/pedidos/1/estado?estado=ENVIADO
 ```
 
 ### Cancelar un pedido
 ```bash
-curl -X PUT http://localhost:8080/api/pedidos/1/cancelar
+curl -X PUT http://localhost:8080/api/v1/pedidos/1/cancelar
 ```
 
 ## Tecnologías
