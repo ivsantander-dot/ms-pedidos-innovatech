@@ -1,74 +1,64 @@
 package com.inovatech.ms_pedidos_innovatech.service;
 
-import com.inovatech.ms_pedidos_innovatech.model.Pedido;
+import com.inovatech.ms_pedidos_innovatech.dto.request.PedidoRequest;
+import com.inovatech.ms_pedidos_innovatech.exception.BusinessException;
+import com.inovatech.ms_pedidos_innovatech.exception.ResourceNotFoundException;
 import com.inovatech.ms_pedidos_innovatech.model.EstadoPedido;
+import com.inovatech.ms_pedidos_innovatech.model.Pedido;
 import com.inovatech.ms_pedidos_innovatech.repository.PedidoRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
-
 @Service
+@RequiredArgsConstructor
 public class PedidoService {
 
-    @Autowired
-    private PedidoRepository pedidoRepository;
+    private final PedidoRepository pedidoRepository;
 
-    // Crear un nuevo pedido
-    public Pedido crearPedido(Pedido pedido) {
+    public Pedido crearPedido(PedidoRequest request) {
+        Pedido pedido = new Pedido();
+        pedido.setClienteId(request.clienteId());
+        pedido.setProducto(request.producto());
+        pedido.setPrecio(request.precio());
+        pedido.setEstado(request.estado());
         return pedidoRepository.save(pedido);
     }
 
-    // Obtener todos los pedidos
     public List<Pedido> obtenerTodosLosPedidos() {
         return pedidoRepository.findAll();
     }
 
-    // Obtener pedido por ID
-    public Optional<Pedido> obtenerPedidoPorId(Long id) {
-        return pedidoRepository.findById(id);
+    public Pedido obtenerPedidoPorId(Long id) {
+        return pedidoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado con ID: " + id));
     }
 
-    // Obtener pedidos por cliente
     public List<Pedido> obtenerPedidosPorCliente(String clienteId) {
         return pedidoRepository.findByClienteId(clienteId);
     }
 
-    // Obtener pedidos por estado
     public List<Pedido> obtenerPedidosPorEstado(EstadoPedido estado) {
         return pedidoRepository.findByEstado(estado);
     }
 
-    // Actualizar estado de un pedido
-    public Optional<Pedido> actualizarEstado(Long id, EstadoPedido nuevoEstado) {
-        Optional<Pedido> pedido = pedidoRepository.findById(id);
-        if (pedido.isPresent()) {
-            Pedido p = pedido.get();
-            p.setEstado(nuevoEstado);
-            return Optional.of(pedidoRepository.save(p));
-        }
-        return Optional.empty();
+    public Pedido actualizarEstado(Long id, EstadoPedido nuevoEstado) {
+        Pedido pedido = obtenerPedidoPorId(id);
+        pedido.setEstado(nuevoEstado);
+        return pedidoRepository.save(pedido);
     }
 
-    // Cancelar un pedido
-    public boolean cancelarPedido(Long id) {
-        Optional<Pedido> pedido = pedidoRepository.findById(id);
-        if (pedido.isPresent() && pedido.get().getEstado() == EstadoPedido.PENDIENTE) {
-            Pedido p = pedido.get();
-            p.setEstado(EstadoPedido.CANCELADO);
-            pedidoRepository.save(p);
-            return true;
+    public void cancelarPedido(Long id) {
+        Pedido pedido = obtenerPedidoPorId(id);
+        if (pedido.getEstado() != EstadoPedido.PENDIENTE) {
+            throw new BusinessException("Solo se pueden cancelar pedidos en estado PENDIENTE");
         }
-        return false;
+        pedido.setEstado(EstadoPedido.CANCELADO);
+        pedidoRepository.save(pedido);
     }
 
-    // Eliminar un pedido
-    public boolean eliminarPedido(Long id) {
-        if (pedidoRepository.existsById(id)) {
-            pedidoRepository.deleteById(id);
-            return true;
-        }
-        return false;
+    public void eliminarPedido(Long id) {
+        Pedido pedido = obtenerPedidoPorId(id);
+        pedidoRepository.delete(pedido);
     }
 }

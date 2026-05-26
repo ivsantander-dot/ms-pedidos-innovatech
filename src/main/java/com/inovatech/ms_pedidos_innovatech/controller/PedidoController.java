@@ -1,85 +1,82 @@
 package com.inovatech.ms_pedidos_innovatech.controller;
 
-import com.inovatech.ms_pedidos_innovatech.model.Pedido;
+import com.inovatech.ms_pedidos_innovatech.dto.request.ActualizarEstadoPedidoRequest;
+import com.inovatech.ms_pedidos_innovatech.dto.request.PedidoRequest;
+import com.inovatech.ms_pedidos_innovatech.dto.response.PedidoResponse;
 import com.inovatech.ms_pedidos_innovatech.model.EstadoPedido;
+import com.inovatech.ms_pedidos_innovatech.model.Pedido;
 import com.inovatech.ms_pedidos_innovatech.service.PedidoService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 import java.util.List;
-import java.util.Optional;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/pedidos")
+@RequiredArgsConstructor
+@Validated
 public class PedidoController {
 
-    @Autowired
-    private PedidoService pedidoService;
+    private final PedidoService pedidoService;
 
-    // Crear un nuevo pedido
     @PostMapping
-    public Pedido crearPedido(@RequestBody Pedido pedido) {
-        return pedidoService.crearPedido(pedido);
+    public ResponseEntity<PedidoResponse> crearPedido(@Valid @RequestBody PedidoRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(pedidoService.crearPedido(request)));
     }
 
-    // Obtener todos los pedidos
     @GetMapping
-    public List<Pedido> obtenerTodosLosPedidos() {
-        return pedidoService.obtenerTodosLosPedidos();
+    public ResponseEntity<List<PedidoResponse>> obtenerTodosLosPedidos() {
+        return ResponseEntity.ok(pedidoService.obtenerTodosLosPedidos().stream().map(this::toResponse).toList());
     }
 
-    // Obtener pedido por ID
     @GetMapping("/{id}")
-    public ResponseEntity<Pedido> obtenerPedidoPorId(@PathVariable Long id) {
-        Optional<Pedido> pedido = pedidoService.obtenerPedidoPorId(id);
-        if (pedido.isPresent()) {
-            return ResponseEntity.ok(pedido.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<PedidoResponse> obtenerPedidoPorId(
+            @PathVariable @Positive(message = "El id debe ser mayor a cero") Long id) {
+        return ResponseEntity.ok(toResponse(pedidoService.obtenerPedidoPorId(id)));
     }
 
-    // Obtener pedidos por cliente
     @GetMapping("/cliente/{clienteId}")
-    public List<Pedido> obtenerPedidosPorCliente(@PathVariable String clienteId) {
-        return pedidoService.obtenerPedidosPorCliente(clienteId);
+    public ResponseEntity<List<PedidoResponse>> obtenerPedidosPorCliente(@PathVariable String clienteId) {
+        return ResponseEntity.ok(pedidoService.obtenerPedidosPorCliente(clienteId).stream().map(this::toResponse).toList());
     }
 
-    // Obtener pedidos por estado
     @GetMapping("/estado/{estado}")
-    public List<Pedido> obtenerPedidosPorEstado(@PathVariable EstadoPedido estado) {
-        return pedidoService.obtenerPedidosPorEstado(estado);
+    public ResponseEntity<List<PedidoResponse>> obtenerPedidosPorEstado(@PathVariable EstadoPedido estado) {
+        return ResponseEntity.ok(pedidoService.obtenerPedidosPorEstado(estado).stream().map(this::toResponse).toList());
     }
 
-    // Actualizar estado de un pedido
     @PutMapping("/{id}/estado")
-    public ResponseEntity<Pedido> actualizarEstado(@PathVariable Long id, @RequestParam EstadoPedido estado) {
-        Optional<Pedido> pedido = pedidoService.actualizarEstado(id, estado);
-        if (pedido.isPresent()) {
-            return ResponseEntity.ok(pedido.get());
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<PedidoResponse> actualizarEstado(
+            @PathVariable @Positive(message = "El id debe ser mayor a cero") Long id,
+            @Valid @RequestBody ActualizarEstadoPedidoRequest request) {
+        return ResponseEntity.ok(toResponse(pedidoService.actualizarEstado(id, request.estado())));
     }
 
-    // Cancelar un pedido
     @PutMapping("/{id}/cancelar")
-    public ResponseEntity<String> cancelarPedido(@PathVariable Long id) {
-        if (pedidoService.cancelarPedido(id)) {
-            return ResponseEntity.ok("Pedido cancelado exitosamente");
-        } else {
-            return ResponseEntity.badRequest().body("No se pudo cancelar el pedido. Verifique que exista y esté en estado PENDIENTE.");
-        }
+    public ResponseEntity<PedidoResponse> cancelarPedido(
+            @PathVariable @Positive(message = "El id debe ser mayor a cero") Long id) {
+        pedidoService.cancelarPedido(id);
+        return ResponseEntity.ok(toResponse(pedidoService.obtenerPedidoPorId(id)));
     }
 
-    // Eliminar un pedido
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> eliminarPedido(@PathVariable Long id) {
-        if (pedidoService.eliminarPedido(id)) {
-            return ResponseEntity.ok("Pedido eliminado exitosamente");
-        } else {
-            return ResponseEntity.notFound().build();
-        }
+    public ResponseEntity<Void> eliminarPedido(
+            @PathVariable @Positive(message = "El id debe ser mayor a cero") Long id) {
+        pedidoService.eliminarPedido(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    private PedidoResponse toResponse(Pedido pedido) {
+        return new PedidoResponse(
+                pedido.getId(),
+                pedido.getClienteId(),
+                pedido.getProducto(),
+                pedido.getPrecio(),
+                pedido.getEstado(),
+                pedido.getFechaCreacion());
     }
 }
