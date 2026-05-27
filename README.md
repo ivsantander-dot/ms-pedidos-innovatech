@@ -1,5 +1,15 @@
 # ms-pedidos-innovatech
 
+## Estado de evidencia
+
+| Categoria | Estado |
+|---|---|
+| Implementado | CRUD de pedidos, DTOs, errores, productor `Pedido_Pagado` |
+| Configurado | MySQL/H2, RabbitMQ, perfiles, Docker |
+| Validado | compilacion |
+| Pendiente de validacion runtime | publicacion real a RabbitMQ y consumo en Logistica |
+| No evidenciado | pruebas automatizadas end-to-end |
+
 ## 1. Descripcion general
 
 Microservicio responsable de la gestion de pedidos. Permite crear pedidos, consultarlos, filtrarlos por cliente o estado, actualizar estado, cancelar y eliminar.
@@ -10,7 +20,7 @@ Microservicio responsable de la gestion de pedidos. Permite crear pedidos, consu
 - BFF: puede ser consumido por el BFF para dashboards y tracking agregado.
 - Otros microservicios: No evidenciado como consumidor HTTP saliente.
 - Base de datos: H2 en desarrollo y MySQL en produccion.
-- RabbitMQ: No evidenciado en este estado del repositorio.
+- RabbitMQ: evidenciado como productor de `Pedido_Pagado`; validacion runtime pendiente.
 
 Flujo simple:
 
@@ -67,7 +77,7 @@ Flujo simple:
 Riesgos o pendientes:
 
 - El `Dockerfile` expone `8080`, pero la configuracion del servicio usa `8082`.
-- No se evidencia productor RabbitMQ activo en este repositorio para `Pedido_Pagado`.
+- El productor `Pedido_Pagado` esta implementado; su validacion runtime con Logistica sigue pendiente.
 
 ## 7. Endpoints principales
 
@@ -104,7 +114,7 @@ Riesgos o pendientes:
 
 ## 10. Eventos RabbitMQ
 
-No se evidencian eventos RabbitMQ en este microservicio.
+Se evidencia el evento `Pedido_Pagado` como productor hacia `pedido.exchange` con routing key `pedido.pagado`. La validacion runtime sigue pendiente.
 
 ## 11. Ejecucion local
 
