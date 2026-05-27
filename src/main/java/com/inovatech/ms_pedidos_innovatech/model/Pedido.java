@@ -15,6 +15,11 @@ public class Pedido {
     private String producto;
     private Double precio;
     private EstadoPedido estado;
+    private String nombreDestinatario;
+    private String direccionDestino;
+    private String ciudadDestino;
+    private String regionDestino;
+    private String telefonoContacto;
     private LocalDateTime fechaCreacion;
 
     @PrePersist
@@ -42,6 +47,21 @@ public class Pedido {
 
     public EstadoPedido getEstado() { return estado; }
     public void setEstado(EstadoPedido estado) { this.estado = estado; }
+
+    public String getNombreDestinatario() { return nombreDestinatario; }
+    public void setNombreDestinatario(String nombreDestinatario) { this.nombreDestinatario = nombreDestinatario; }
+
+    public String getDireccionDestino() { return direccionDestino; }
+    public void setDireccionDestino(String direccionDestino) { this.direccionDestino = direccionDestino; }
+
+    public String getCiudadDestino() { return ciudadDestino; }
+    public void setCiudadDestino(String ciudadDestino) { this.ciudadDestino = ciudadDestino; }
+
+    public String getRegionDestino() { return regionDestino; }
+    public void setRegionDestino(String regionDestino) { this.regionDestino = regionDestino; }
+
+    public String getTelefonoContacto() { return telefonoContacto; }
+    public void setTelefonoContacto(String telefonoContacto) { this.telefonoContacto = telefonoContacto; }
 
     public LocalDateTime getFechaCreacion() { return fechaCreacion; }
     public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }
