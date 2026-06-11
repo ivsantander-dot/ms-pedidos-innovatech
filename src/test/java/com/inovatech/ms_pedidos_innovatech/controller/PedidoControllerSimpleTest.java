@@ -1,7 +1,12 @@
 package com.inovatech.ms_pedidos_innovatech.controller;
 
-import com.inovatech.ms_pedidos_innovatech.model.Pedido;
+import com.inovatech.ms_pedidos_innovatech.dto.request.ActualizarEstadoPedidoRequest;
+import com.inovatech.ms_pedidos_innovatech.dto.request.PedidoRequest;
+import com.inovatech.ms_pedidos_innovatech.dto.response.PedidoResponse;
+import com.inovatech.ms_pedidos_innovatech.exception.BusinessException;
+import com.inovatech.ms_pedidos_innovatech.exception.ResourceNotFoundException;
 import com.inovatech.ms_pedidos_innovatech.model.EstadoPedido;
+import com.inovatech.ms_pedidos_innovatech.model.Pedido;
 import com.inovatech.ms_pedidos_innovatech.service.PedidoService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -9,11 +14,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -30,6 +36,7 @@ class PedidoControllerSimpleTest {
 
     private Pedido pedido1;
     private Pedido pedido2;
+    private PedidoRequest request1;
 
     @BeforeEach
     void setUp() {
@@ -48,22 +55,21 @@ class PedidoControllerSimpleTest {
         pedido2.setPrecio(25.0);
         pedido2.setEstado(EstadoPedido.ENVIADO);
         pedido2.setFechaCreacion(LocalDateTime.now());
+
+        request1 = new PedidoRequest("cliente123", "Laptop", 1200.0, EstadoPedido.PENDIENTE, null, null, null, null, null);
     }
 
     @Test
     void crearPedido_DebeRetornarPedidoCreado() {
-        when(pedidoService.crearPedido(any(Pedido.class))).thenReturn(pedido1);
+        when(pedidoService.crearPedido(any(PedidoRequest.class))).thenReturn(pedido1);
 
-        Pedido resultado = pedidoController.crearPedido(pedido1);
+        ResponseEntity<PedidoResponse> response = pedidoController.crearPedido(request1);
 
-        assertNotNull(resultado);
-        assertEquals(pedido1.getId(), resultado.getId());
-        assertEquals(pedido1.getClienteId(), resultado.getClienteId());
-        assertEquals(pedido1.getProducto(), resultado.getProducto());
-        assertEquals(pedido1.getPrecio(), resultado.getPrecio());
-        assertEquals(pedido1.getEstado(), resultado.getEstado());
-
-        verify(pedidoService, times(1)).crearPedido(pedido1);
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1L, response.getBody().id());
+        assertEquals("cliente123", response.getBody().clienteId());
+        verify(pedidoService, times(1)).crearPedido(any(PedidoRequest.class));
     }
 
     @Test
@@ -71,13 +77,11 @@ class PedidoControllerSimpleTest {
         List<Pedido> pedidos = Arrays.asList(pedido1, pedido2);
         when(pedidoService.obtenerTodosLosPedidos()).thenReturn(pedidos);
 
-        List<Pedido> resultado = pedidoController.obtenerTodosLosPedidos();
+        ResponseEntity<List<PedidoResponse>> response = pedidoController.obtenerTodosLosPedidos();
 
-        assertNotNull(resultado);
-        assertEquals(2, resultado.size());
-        assertTrue(resultado.contains(pedido1));
-        assertTrue(resultado.contains(pedido2));
-
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(2, response.getBody().size());
         verify(pedidoService, times(1)).obtenerTodosLosPedidos();
     }
 
@@ -85,34 +89,32 @@ class PedidoControllerSimpleTest {
     void obtenerTodosLosPedidos_DebeRetornarListaVacia() {
         when(pedidoService.obtenerTodosLosPedidos()).thenReturn(Arrays.asList());
 
-        List<Pedido> resultado = pedidoController.obtenerTodosLosPedidos();
+        ResponseEntity<List<PedidoResponse>> response = pedidoController.obtenerTodosLosPedidos();
 
-        assertNotNull(resultado);
-        assertTrue(resultado.isEmpty());
-
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isEmpty());
         verify(pedidoService, times(1)).obtenerTodosLosPedidos();
     }
 
     @Test
     void obtenerPedidoPorId_DebeRetornarPedidoCuandoExiste() {
-        when(pedidoService.obtenerPedidoPorId(1L)).thenReturn(Optional.of(pedido1));
+        when(pedidoService.obtenerPedidoPorId(1L)).thenReturn(pedido1);
 
-        var resultado = pedidoController.obtenerPedidoPorId(1L);
+        ResponseEntity<PedidoResponse> response = pedidoController.obtenerPedidoPorId(1L);
 
-        assertTrue(resultado.getStatusCode().is2xxSuccessful());
-        assertEquals(pedido1, resultado.getBody());
-
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1L, response.getBody().id());
         verify(pedidoService, times(1)).obtenerPedidoPorId(1L);
     }
 
     @Test
-    void obtenerPedidoPorId_DebeRetornarNotFoundCuandoNoExiste() {
-        when(pedidoService.obtenerPedidoPorId(999L)).thenReturn(Optional.empty());
+    void obtenerPedidoPorId_DebeLanzarExcepcionCuandoNoExiste() {
+        when(pedidoService.obtenerPedidoPorId(999L))
+                .thenThrow(new ResourceNotFoundException("Pedido no encontrado con ID: 999"));
 
-        var resultado = pedidoController.obtenerPedidoPorId(999L);
-
-        assertTrue(resultado.getStatusCode().is4xxClientError());
-
+        assertThrows(ResourceNotFoundException.class, () -> pedidoController.obtenerPedidoPorId(999L));
         verify(pedidoService, times(1)).obtenerPedidoPorId(999L);
     }
 
@@ -121,12 +123,12 @@ class PedidoControllerSimpleTest {
         List<Pedido> pedidosCliente = Arrays.asList(pedido1);
         when(pedidoService.obtenerPedidosPorCliente("cliente123")).thenReturn(pedidosCliente);
 
-        List<Pedido> resultado = pedidoController.obtenerPedidosPorCliente("cliente123");
+        ResponseEntity<List<PedidoResponse>> response = pedidoController.obtenerPedidosPorCliente("cliente123");
 
-        assertNotNull(resultado);
-        assertEquals(1, resultado.size());
-        assertEquals("cliente123", resultado.get(0).getClienteId());
-
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().size());
+        assertEquals("cliente123", response.getBody().get(0).clienteId());
         verify(pedidoService, times(1)).obtenerPedidosPorCliente("cliente123");
     }
 
@@ -135,83 +137,80 @@ class PedidoControllerSimpleTest {
         List<Pedido> pedidosPendientes = Arrays.asList(pedido1);
         when(pedidoService.obtenerPedidosPorEstado(EstadoPedido.PENDIENTE)).thenReturn(pedidosPendientes);
 
-        List<Pedido> resultado = pedidoController.obtenerPedidosPorEstado(EstadoPedido.PENDIENTE);
+        ResponseEntity<List<PedidoResponse>> response = pedidoController.obtenerPedidosPorEstado(EstadoPedido.PENDIENTE);
 
-        assertNotNull(resultado);
-        assertEquals(1, resultado.size());
-        assertEquals(EstadoPedido.PENDIENTE, resultado.get(0).getEstado());
-
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(1, response.getBody().size());
+        assertEquals(EstadoPedido.PENDIENTE, response.getBody().get(0).estado());
         verify(pedidoService, times(1)).obtenerPedidosPorEstado(EstadoPedido.PENDIENTE);
     }
 
     @Test
-    void actualizarEstado_DebeRetornarPedidoActualizadoCuandoExiste() {
+    void actualizarEstado_DebeRetornarPedidoActualizado() {
+        ActualizarEstadoPedidoRequest estadoRequest = new ActualizarEstadoPedidoRequest(EstadoPedido.ENVIADO);
         pedido1.setEstado(EstadoPedido.ENVIADO);
-        when(pedidoService.actualizarEstado(1L, EstadoPedido.ENVIADO)).thenReturn(Optional.of(pedido1));
+        when(pedidoService.actualizarEstado(1L, EstadoPedido.ENVIADO)).thenReturn(pedido1);
 
-        var resultado = pedidoController.actualizarEstado(1L, EstadoPedido.ENVIADO);
+        ResponseEntity<PedidoResponse> response = pedidoController.actualizarEstado(1L, estadoRequest);
 
-        assertTrue(resultado.getStatusCode().is2xxSuccessful());
-        assertEquals(EstadoPedido.ENVIADO, resultado.getBody().getEstado());
-
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(EstadoPedido.ENVIADO, response.getBody().estado());
         verify(pedidoService, times(1)).actualizarEstado(1L, EstadoPedido.ENVIADO);
     }
 
     @Test
-    void actualizarEstado_DebeRetornarNotFoundCuandoNoExiste() {
-        when(pedidoService.actualizarEstado(999L, EstadoPedido.ENVIADO)).thenReturn(Optional.empty());
+    void actualizarEstado_DebeLanzarExcepcionCuandoNoExiste() {
+        ActualizarEstadoPedidoRequest estadoRequest = new ActualizarEstadoPedidoRequest(EstadoPedido.ENVIADO);
+        when(pedidoService.actualizarEstado(999L, EstadoPedido.ENVIADO))
+                .thenThrow(new ResourceNotFoundException("Pedido no encontrado"));
 
-        var resultado = pedidoController.actualizarEstado(999L, EstadoPedido.ENVIADO);
-
-        assertTrue(resultado.getStatusCode().is4xxClientError());
-
+        assertThrows(ResourceNotFoundException.class, () -> pedidoController.actualizarEstado(999L, estadoRequest));
         verify(pedidoService, times(1)).actualizarEstado(999L, EstadoPedido.ENVIADO);
     }
 
     @Test
-    void cancelarPedido_DebeRetornarMensajeExitoCuandoSePuedeCancelar() {
-        when(pedidoService.cancelarPedido(1L)).thenReturn(true);
+    void cancelarPedido_DebeRetornarPedidoCancelado() {
+        pedido1.setEstado(EstadoPedido.CANCELADO);
+        doNothing().when(pedidoService).cancelarPedido(1L);
+        when(pedidoService.obtenerPedidoPorId(1L)).thenReturn(pedido1);
 
-        var resultado = pedidoController.cancelarPedido(1L);
+        ResponseEntity<PedidoResponse> response = pedidoController.cancelarPedido(1L);
 
-        assertTrue(resultado.getStatusCode().is2xxSuccessful());
-        assertEquals("Pedido cancelado exitosamente", resultado.getBody());
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(EstadoPedido.CANCELADO, response.getBody().estado());
+        verify(pedidoService, times(1)).cancelarPedido(1L);
+        verify(pedidoService, times(1)).obtenerPedidoPorId(1L);
+    }
 
+    @Test
+    void cancelarPedido_DebeLanzarExcepcionCuandoNoPuedeCancelarse() {
+        doThrow(new BusinessException("Solo se pueden cancelar pedidos en estado PENDIENTE"))
+                .when(pedidoService).cancelarPedido(1L);
+
+        assertThrows(BusinessException.class, () -> pedidoController.cancelarPedido(1L));
         verify(pedidoService, times(1)).cancelarPedido(1L);
     }
 
     @Test
-    void cancelarPedido_DebeRetornarBadRequestCuandoNoSePuedeCancelar() {
-        when(pedidoService.cancelarPedido(1L)).thenReturn(false);
+    void eliminarPedido_DebeRetornarNoContent() {
+        doNothing().when(pedidoService).eliminarPedido(1L);
 
-        var resultado = pedidoController.cancelarPedido(1L);
+        ResponseEntity<Void> response = pedidoController.eliminarPedido(1L);
 
-        assertTrue(resultado.getStatusCode().is4xxClientError());
-        assertEquals("No se pudo cancelar el pedido. Verifique que exista y esté en estado PENDIENTE.", resultado.getBody());
-
-        verify(pedidoService, times(1)).cancelarPedido(1L);
-    }
-
-    @Test
-    void eliminarPedido_DebeRetornarMensajeExitoCuandoExiste() {
-        when(pedidoService.eliminarPedido(1L)).thenReturn(true);
-
-        var resultado = pedidoController.eliminarPedido(1L);
-
-        assertTrue(resultado.getStatusCode().is2xxSuccessful());
-        assertEquals("Pedido eliminado exitosamente", resultado.getBody());
-
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        assertNull(response.getBody());
         verify(pedidoService, times(1)).eliminarPedido(1L);
     }
 
     @Test
-    void eliminarPedido_DebeRetornarNotFoundCuandoNoExiste() {
-        when(pedidoService.eliminarPedido(999L)).thenReturn(false);
+    void eliminarPedido_DebeLanzarExcepcionCuandoNoExiste() {
+        doThrow(new ResourceNotFoundException("Pedido no encontrado con ID: 999"))
+                .when(pedidoService).eliminarPedido(999L);
 
-        var resultado = pedidoController.eliminarPedido(999L);
-
-        assertTrue(resultado.getStatusCode().is4xxClientError());
-
+        assertThrows(ResourceNotFoundException.class, () -> pedidoController.eliminarPedido(999L));
         verify(pedidoService, times(1)).eliminarPedido(999L);
     }
 }

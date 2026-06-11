@@ -22,7 +22,9 @@ import com.inovatech.ms_pedidos_innovatech.model.Pedido;
 @TestPropertySource(properties = {
     "spring.datasource.url=jdbc:h2:mem:testdb",
     "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect"
+    "spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.H2Dialect",
+    "jwt.secret=test-secret-for-testing-purposes-only-min32c",
+    "spring.rabbitmq.listener.simple.auto-startup=false"
 })
 class PedidoRepositorySimpleTest {
 
