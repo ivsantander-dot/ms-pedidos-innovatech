@@ -1,59 +1,25 @@
-package com.inovatech.ms_pedidos_innovatech.model;
+package com.inovatech.ms_pedidos_innovatech.dto;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
-import java.time.LocalDateTime;
-
-@Entity
-@Table(name = "pedidos")
-public class Pedido {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+public class PedidoRequest {
 
     private String clienteId;
     private String producto;
     private Double precio;
-
-    @Enumerated(EnumType.STRING)
-    private EstadoPedido estado;
-
-    private LocalDateTime fechaCreacion;
+    private String estado;
     private String nombreDestinatario;
     private String direccionDestino;
     private String ciudadDestino;
     private String regionDestino;
     private String telefonoContacto;
 
-    @PrePersist
-    protected void onCreate() {
-        if (estado == null) {
-            estado = EstadoPedido.PENDIENTE;
-        }
-        if (fechaCreacion == null) {
-            fechaCreacion = LocalDateTime.now();
-        }
-    }
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
     public String getClienteId() { return clienteId; }
     public void setClienteId(String clienteId) { this.clienteId = clienteId; }
     public String getProducto() { return producto; }
     public void setProducto(String producto) { this.producto = producto; }
     public Double getPrecio() { return precio; }
     public void setPrecio(Double precio) { this.precio = precio; }
-    public EstadoPedido getEstado() { return estado; }
-    public void setEstado(EstadoPedido estado) { this.estado = estado; }
-    public LocalDateTime getFechaCreacion() { return fechaCreacion; }
-    public void setFechaCreacion(LocalDateTime fechaCreacion) { this.fechaCreacion = fechaCreacion; }
+    public String getEstado() { return estado; }
+    public void setEstado(String estado) { this.estado = estado; }
     public String getNombreDestinatario() { return nombreDestinatario; }
     public void setNombreDestinatario(String nombreDestinatario) { this.nombreDestinatario = nombreDestinatario; }
     public String getDireccionDestino() { return direccionDestino; }
